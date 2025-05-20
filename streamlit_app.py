@@ -1,11 +1,16 @@
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), 'strategies'))
+
 import streamlit as st
 import pandas as pd
-from strategies.backtest_demo import (
+from backtest_demo import (
     BIST_40,
     strateji_ml_temel,
     strateji_rsi_only,
     backtest_strateji
 )
+
 
 st.set_page_config(page_title="Toplu Strateji Backtest", layout="wide")
 st.title("📊 Tüm Stratejiler - Tüm Hisseler Backtest Paneli")
