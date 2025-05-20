@@ -71,7 +71,11 @@ def strateji_rsi_only(df):
     return tahmin, 0.5
 
 def backtest_strateji(symbol, strateji_fn, gun_sayisi=60, baslangic_bakiye=100000):
-    df = get_hisse_verisi(symbol, gun=gun_sayisi + 20)
+    try:
+        df = get_hisse_verisi(symbol, gun=gun_sayisi + 30)
+    except:
+        return pd.DataFrame()
+
     df = df.reset_index()
     results = []
     bakiye = baslangic_bakiye
@@ -82,6 +86,8 @@ def backtest_strateji(symbol, strateji_fn, gun_sayisi=60, baslangic_bakiye=10000
 
         try:
             tahmin, acc = strateji_fn(df_train)
+            if tahmin is None:
+                continue
         except:
             continue
 
@@ -104,3 +110,4 @@ def backtest_strateji(symbol, strateji_fn, gun_sayisi=60, baslangic_bakiye=10000
         })
 
     return pd.DataFrame(results)
+
