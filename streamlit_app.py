@@ -51,9 +51,10 @@ if st.button("🚀 Tüm Stratejileri Test Et"):
                     st.warning(f"{hisse}-{ad} hata: {e}")
                     continue
 
-    if df_sonuc:
+if df_sonuc:
     df_sonuc = pd.DataFrame(df_sonuc)
     st.success("✅ Tüm testler tamamlandı.")
     st.dataframe(df_sonuc.sort_values(by="Kar/Zarar (%)", ascending=False), use_container_width=True)
 else:
     st.warning("Hiçbir tahmin verisi alınamadı. Lütfen daha kısa bir gün aralığıyla tekrar deneyin.")
+
