@@ -38,18 +38,31 @@ def get_hisse_verisi(symbol="AKBNK", gun=90):
 
 def strateji_ml_temel(df):
     features = ["EMA_10", "EMA_20", "RSI_14", "MACD", "volume_change", "prev_return", "price_diff_3day", "price_volatility"]
-    scaler = MinMaxScaler()
+
+    df = df.copy()
+    df["y"] = (df["close"].shift(-1) > df["close"]).astype(int)
+    df.dropna(subset=features + ["y"], inplace=True)
+
+    if len(df) < 10:
+        raise ValueError("Yetersiz veri")
+
     X = df[features]
-    y = (df["close"].shift(-1) > df["close"]).astype(int)
-    df.dropna(inplace=True)
+    y = df["y"]
+
+    scaler = MinMaxScaler()
     X_scaled = scaler.fit_transform(X)
+
     X_train = X_scaled[:-1]
     y_train = y.iloc[:-1]
+
     model = HistGradientBoostingClassifier(max_iter=200, max_depth=5, random_state=42)
     model.fit(X_train, y_train)
-    latest = scaler.transform([df[features].iloc[-1]])
-    tahmin = model.predict(latest)[0]
-    return tahmin, model.score(X_train, y_train)
+
+    latest_features = scaler.transform([X.iloc[-1].values])
+    tahmin = model.predict(latest_features)[0]
+
+    return int(tahmin), round(model.score(X_train, y_train), 2)
+
 
 def strateji_rsi_only(df):
     latest = df.iloc[-1]
