@@ -31,11 +31,11 @@ if st.button("🚀 Tüm Stratejileri Test Et"):
             for ad, fn in strategiler.items():
                 try:
                     df_result = backtest_strateji(hisse, fn, gun_sayisi)
-                    if not df_result.empty:
-                        ...
-                        sonuc.append({...})
-                except:
+                    ...
+                except Exception as e:
+                    st.warning(f"{hisse}-{ad} hata: {e}")
                     continue
+
 
     # ✅ Burada çevir:
     if sonuc:
