@@ -4,7 +4,6 @@ import yfinance as yf
 from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
-from datetime import timedelta
 
 BIST_40 = [
     "AKBNK", "AKSEN", "ALARK", "ASELS", "BIMAS", "DOHOL", "EKGYO", "ENJSA", "EREGL", "FROTO",
@@ -12,7 +11,6 @@ BIST_40 = [
     "PETKM", "PGSUS", "SAHOL", "SASA", "SISE", "TAVHL", "TCELL", "THYAO", "TKFEN", "TOASO",
     "TSKB", "TTKOM", "TTRAK", "TUPRS", "VAKBN", "VESBE", "YKBNK", "SOKM", "SKBNK", "ARCLK"
 ]
-
 
 def get_hisse_verisi(symbol="AKBNK", gun=90):
     symbol_yf = symbol + ".IS"
@@ -38,9 +36,7 @@ def get_hisse_verisi(symbol="AKBNK", gun=90):
     df.dropna(inplace=True)
     return df
 
-# Strateji 1: ML_Temel (Gradient Boosting)
 def strateji_ml_temel(df):
-    df = df.copy()
     features = ["EMA_10", "EMA_20", "RSI_14", "MACD", "volume_change", "prev_return", "price_diff_3day", "price_volatility"]
     scaler = MinMaxScaler()
     X = df[features]
@@ -55,14 +51,12 @@ def strateji_ml_temel(df):
     tahmin = model.predict(latest)[0]
     return tahmin, model.score(X_train, y_train)
 
-# Strateji 2: RSI Only
 def strateji_rsi_only(df):
     latest = df.iloc[-1]
     rsi = latest["RSI_14"]
     tahmin = 1 if rsi > 50 else 0
-    return tahmin, 0.50  # dummy accuracy
+    return tahmin, 0.5
 
-# Geriye dönük test
 def backtest_strateji(symbol, strateji_fn, gun_sayisi=60, baslangic_bakiye=100000):
     df = get_hisse_verisi(symbol, gun=gun_sayisi + 20)
     df = df.reset_index()
@@ -82,7 +76,6 @@ def backtest_strateji(symbol, strateji_fn, gun_sayisi=60, baslangic_bakiye=10000
         close_tomorrow = df_next["close"]
         gercek_degisim = (close_tomorrow - close_today) / close_today * 100
 
-        # Portföy
         birim_yatirim = bakiye / 20
         getiri = birim_yatirim * (gercek_degisim / 100) if tahmin == 1 else -birim_yatirim * (gercek_degisim / 100)
         bakiye += getiri
@@ -97,16 +90,4 @@ def backtest_strateji(symbol, strateji_fn, gun_sayisi=60, baslangic_bakiye=10000
             "bakiye": round(bakiye, 2)
         })
 
-    df_results = pd.DataFrame(results)
-    basari = df_results["hedefe_ulaştı"].sum()
-    toplam = len(df_results)
-    oran = round(basari / toplam * 100, 2) if toplam > 0 else 0
-    bitis_bakiye = df_results["bakiye"].iloc[-1] if not df_results.empty else baslangic_bakiye
-    kazanc = bitis_bakiye - baslangic_bakiye
-    yuzde_kazanc = round(kazanc / baslangic_bakiye * 100, 2)
-
-    print(f"📈 Backtest - {symbol}")
-    print(f"Tahmin Sayısı: {toplam} | Başarı Oranı: %{oran}")
-    print(f"Başlangıç: {baslangic_bakiye} TL → Bitiş: {bitis_bakiye:.2f} TL | Kar/Zarar: %{yuzde_kazanc}")
-
-    return df_results
+    return pd.DataFrame(results)
