@@ -3,7 +3,6 @@ import numpy as np
 import yfinance as yf
 from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.model_selection import train_test_split
 
 BIST_40 = [
     "AKBNK", "AKSEN", "ALARK", "ASELS", "BIMAS", "DOHOL", "EKGYO", "ENJSA", "EREGL", "FROTO",
@@ -15,7 +14,7 @@ BIST_40 = [
 def get_hisse_verisi(symbol="AKBNK", gun=90):
     symbol_yf = symbol + ".IS"
     df = yf.download(symbol_yf, period=f"{gun}d", interval="1d", progress=False)
-    if df is None or len(df) < 30:
+    if df is None or df.empty or len(df) < 30:
         raise ValueError("Yetersiz veri")
     df = df.reset_index()
     df.rename(columns={"Date": "date", "Close": "close"}, inplace=True)
@@ -37,24 +36,21 @@ def get_hisse_verisi(symbol="AKBNK", gun=90):
     return df
 
 def strateji_ml_temel(df):
-    features = ["EMA_10", "EMA_20", "RSI_14", "MACD", "volume_change", "prev_return", "price_diff_3day", "price_volatility"]
-
     df = df.copy()
+    features = ["EMA_10", "EMA_20", "RSI_14", "MACD", "volume_change", "prev_return", "price_diff_3day", "price_volatility"]
     df["y"] = (df["close"].shift(-1) > df["close"]).astype(int)
     df.dropna(subset=features + ["y"], inplace=True)
 
-    if len(df) < 10:
-        raise ValueError("Yetersiz veri")
+    if len(df) < 20:
+        return None, 0.0
 
     X = df[features]
     y = df["y"]
-
     scaler = MinMaxScaler()
     X_scaled = scaler.fit_transform(X)
 
     X_train = X_scaled[:-1]
     y_train = y.iloc[:-1]
-
     model = HistGradientBoostingClassifier(max_iter=200, max_depth=5, random_state=42)
     model.fit(X_train, y_train)
 
@@ -63,10 +59,10 @@ def strateji_ml_temel(df):
 
     return int(tahmin), round(model.score(X_train, y_train), 2)
 
-
 def strateji_rsi_only(df):
-    latest = df.iloc[-1]
-    rsi = latest["RSI_14"]
+    if "RSI_14" not in df.columns or df.empty:
+        return None, 0.0
+    rsi = df.iloc[-1]["RSI_14"]
     tahmin = 1 if rsi > 50 else 0
     return tahmin, 0.5
 
@@ -110,4 +106,3 @@ def backtest_strateji(symbol, strateji_fn, gun_sayisi=60, baslangic_bakiye=10000
         })
 
     return pd.DataFrame(results)
-
