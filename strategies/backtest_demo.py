@@ -6,6 +6,14 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 from datetime import timedelta
 
+BIST_40 = [
+    "AKBNK", "AKSEN", "ALARK", "ASELS", "BIMAS", "DOHOL", "EKGYO", "ENJSA", "EREGL", "FROTO",
+    "GARAN", "GUBRF", "HALKB", "HEKTS", "ISCTR", "KCHOL", "KOZAA", "KOZAL", "KRDMD", "MGROS",
+    "PETKM", "PGSUS", "SAHOL", "SASA", "SISE", "TAVHL", "TCELL", "THYAO", "TKFEN", "TOASO",
+    "TSKB", "TTKOM", "TTRAK", "TUPRS", "VAKBN", "VESBE", "YKBNK", "SOKM", "SKBNK", "ARCLK"
+]
+
+
 def get_hisse_verisi(symbol="AKBNK", gun=90):
     symbol_yf = symbol + ".IS"
     df = yf.download(symbol_yf, period=f"{gun}d", interval="1d", progress=False)
