@@ -26,27 +26,25 @@ gun_sayisi = st.slider("📅 Geriye dönük gün sayısı", 30, 100, 60)
 if st.button("🚀 Tüm Stratejileri Test Et"):
     sonuc = []
 
-    with st.spinner("Testler yapılıyor... Bu işlem birkaç dakika sürebilir."):
+    with st.spinner("Testler yapılıyor..."):
         for hisse in BIST_40:
             for ad, fn in strategiler.items():
                 try:
                     df_result = backtest_strateji(hisse, fn, gun_sayisi)
                     if not df_result.empty:
-                        final_bakiye = df_result["bakiye"].iloc[-1]
-                        baslangic = 100000
-                        kazanc_yuzde = round((final_bakiye - baslangic) / baslangic * 100, 2)
-                        basari = df_result["hedefe_ulaştı"].sum()
-                        toplam = len(df_result)
-                        oran = round(basari / toplam * 100, 2)
+                        ...
+                        sonuc.append({...})
+                except:
+                    continue
 
-                        sonuc.append({
-                            "Hisse": hisse,
-                            "Strateji": ad,
-                            "Tahmin Sayısı": toplam,
-                            "Başarı Oranı (%)": oran,
-                            "Son Bakiye (TL)": round(final_bakiye, 2),
-                            "Kar/Zarar (%)": kazanc_yuzde
-                        })
+    # ✅ Burada çevir:
+    if sonuc:
+        df_sonuc = pd.DataFrame(sonuc)
+        st.success("✅ Tüm testler tamamlandı.")
+        st.dataframe(df_sonuc.sort_values(by="Kar/Zarar (%)", ascending=False), use_container_width=True)
+    else:
+        st.warning("Hiçbir tahmin verisi alınamadı.")
+
                 except Exception as e:
                     st.warning(f"{hisse}-{ad} hata: {e}")
                     continue
